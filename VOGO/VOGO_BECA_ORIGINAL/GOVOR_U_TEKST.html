@@ -1,0 +1,86 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>GOVOR_U_TEKST</title>
+
+	<head>
+	
+		<style>
+            html, body 
+			{
+				background-color: #efefef;
+            }
+        </style>
+		
+		
+		<script src="./jquery.min.js"></script>
+		
+	</head>
+
+<body>
+		
+	<style>body { font: 1.2em arial; } output { display: block; }</style>
+			
+<script>
+
+var myVar = setInterval(myTimer, 5000);
+var text = '';
+text.autofocus;
+
+function myTimer()
+{
+	location.reload();
+}
+
+var respond = function(event) {
+	
+	text = '';
+	for (var i = event.resultIndex; i < event.results.length; ++i) 
+	{
+		var result = event.results[i];
+		text += result[0].transcript;
+		if (result.isFinal) 
+		{
+			output.innerHTML = text + '&nbsp;';
+			document.body.style.backgroundColor = "white";
+			output.style.color = 'blue';
+			navigator.clipboard.writeText(text.toUpperCase());
+			
+			//location.reload();
+			
+		} else {
+			clearTimeout(myVar);
+			myVar = setInterval(myTimer, 5000);
+			output.innerHTML = text + '&nbsp;';
+		}
+	}
+}
+
+var createOutput = function() 
+{
+	var output = document.createElement('output');
+	output.style.color = 'red';
+	document.body.appendChild(output);
+	return output;
+}
+
+var listen = function() 
+{
+	var recognition = new webkitSpeechRecognition();
+	recognition.continuous = false;
+	recognition.interimResults = true;
+	//recognition.lang = 'en_GB';
+	recognition.lang = 'sr';
+	recognition.start();
+	recognition.onresult = respond;
+}
+
+var output = createOutput();
+
+listen();
+
+window.resizeTo(620, 106); window.moveTo(0, 7);
+SHOWdiv();
+
+</script>
+
+</body>

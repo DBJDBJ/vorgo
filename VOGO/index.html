@@ -1,0 +1,151 @@
+<!doctype html>
+<html>
+<title>interim and final separate</title>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta charset="utf-8">
+	<!-- 
+		DBJ: u ovoj stranici se ne koristi jQuery
+		<script src="./jquery.min.js"></script>
+	-->
+	<style>
+		html *
+		{
+			background-color: #efefef;
+			font: 1.2em arial;
+			margin: 2%;
+			padding: 1%;
+		}
+
+		button,
+		div,
+		span {
+			font: 14px monospace;
+		}
+
+		#info {
+			/* width: 100%; */
+			display: block;
+			border: 4px solid gray;
+			margin: 2%;
+			padding: 1%;
+			height: 120 px;
+			font: 14px monospace;
+		}
+	</style>
+</head>
+
+<body id="body">
+	<button id="button" onclick="toggleStartStop()"></button>
+	<div style="border:2px dotted; height:255px;">
+		<span id="final_span"></span>
+		<span id="interim_span" style="color:grey"></span>
+	</div>
+
+	<div id="info"></div>
+
+	<script type="text/javascript">
+
+		/// official spec is here: https://wicg.github.io/speech-api/#speechreco-sectionF
+		/// I was using this as KB: https://bensonruan.com/voice-to-text-with-chrome-web-speech-api/
+
+		onload = function () {
+
+			if ('webkitSpeechRecognition' in window) {
+				// speech recognition API supported
+			} else {
+				alert("speech recognition API is not supported on this browser");
+				return;
+			}
+
+			var recognizing;
+			var recognition = new webkitSpeechRecognition();
+			recognition.continuous = true;
+			recognition.interimResults = true;
+			//recognition.lang = 'en_GB';
+			recognition.lang = 'sr';
+			reset();
+			recognition.onend = reset;
+			recognition.onerror = dbj_speach_recognition_error_handler;
+
+			recognition.onresult = function (event) {
+				var final = "";
+				var interim = "";
+				for (var i = 0; i < event.results.length; ++i) {
+					if (event.results[i].isFinal) {
+						final += event.results[i][0].transcript;
+						/// DBJ added
+						final += "<br/>";
+						interim_span.innerHTML = "";
+					} else {
+						interim += event.results[i][0].transcript;
+					}
+				}
+				final_span.innerHTML = final;
+				interim_span.innerHTML = interim;
+			}
+
+			function reset() {
+				recognizing = false;
+				button.innerHTML = "Klikni i pričaj";
+			}
+
+			window.toggleStartStop = function () {
+				if (recognizing) {
+					recognition.stop();
+					reset();
+				} else {
+					recognition.start();
+					recognizing = true;
+					button.innerHTML = "Klikni za prestanak rada";
+					final_span.innerHTML = "";
+					interim_span.innerHTML = "";
+				}
+			}
+
+		} // eof onload()
+
+	</script>
+
+</body>
+<script type="text/javascript">
+
+	/// DBJ: usage: "1".paddingLeft("000")
+	/*
+	ECMAScript 2017 adds a padStart method to the String prototype. 
+	This method will pad a string with spaces to a given length. 
+	This method also takes an optional string that will be used instead of spaces for padding.
+
+	'abc'.padStart(10);         // "       abc"
+	'abc'.padStart(10, "foo");  // "foofoofabc"
+	'abc'.padStart(6,"123465"); // "123abc"
+	'abc'.padStart(8, "0");     // "00000abc"
+	'abc'.padStart(1);          // "abc"
+
+	A padEnd method was also added that works in the same manner.
+	*/
+	String.prototype.paddingLeft = function (paddingValue) {
+		return String(paddingValue + this).slice(-paddingValue.length);
+	};
+
+	var info_block = document.querySelector("#info");
+	var info_block_counter = 0;
+
+	var info = function (message) {
+
+		if (message === undefined) {
+			info_block.innerHTML = ""; // clear 
+			info_block_counter = 0;
+		}
+		else {
+			var lineno = info_block_counter.toString().paddingLeft("000");
+			info_block.innerHTML += (lineno + "> " + message + "<br/>");
+			info_block_counter += 1;
+		}
+	}
+
+	window.dbj_speach_recognition_error_handler = function (event) {
+		info("speach_recognition_error_handler received:" + event.error);
+	}
+</script>
+</html>
